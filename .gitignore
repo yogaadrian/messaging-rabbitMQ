@@ -1,0 +1,12 @@
+/Server/nbproject/private/
+/Client/nbproject/private/
+/Server/build/
+/Server/nbbuild/
+/Server/dist/
+/Server/nbdist/
+/Server/.nb-gradle/
+/Client/build/
+/Client/nbbuild/
+/Client/dist/
+/Client/nbdist/
+/Client/.nb-gradle/
