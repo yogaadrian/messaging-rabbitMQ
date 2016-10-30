@@ -5,6 +5,11 @@
  */
 package server;
 
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.Channel;
+import java.util.Scanner;
+import java.util.concurrent.TimeoutException;
 /**
  *
  * @author yoga
