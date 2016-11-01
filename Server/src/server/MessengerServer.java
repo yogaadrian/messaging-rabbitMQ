@@ -6,6 +6,7 @@
 package server;
 
 import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
@@ -71,11 +72,21 @@ public class MessengerServer {
                             if(contents[0].equalsIgnoreCase("register")){
                                 String userId = contents[2];
                                 String password = contents[3];
+                                Message m;
                                 if(getUser(userId).equalsIgnoreCase(userId)){
                                     System.out.println("user does exist!");
+                                    m = new Message(1, SERVER_QUEUE_NAME, "FAIL");
                                 }else{
                                     registerUser(userId, password);
+                                    System.out.println("success!");
+                                    m = new Message(1, SERVER_QUEUE_NAME, "SUCCESS");
                                 }
+                                BasicProperties replyProps = new BasicProperties
+                                     .Builder()
+                                     .correlationId(properties.getCorrelationId())
+                                     .build();
+                                
+                                channel.basicPublish("", properties.getReplyTo(), replyProps, m.toBytes());
                             }
                             break;
                         }
