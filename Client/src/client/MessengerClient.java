@@ -7,12 +7,14 @@ package rabbitmqtes;
 
 import client.Message;
 import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.QueueingConsumer;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
@@ -30,7 +32,7 @@ public class MessengerClient {
     private Connection connection;
     private Channel channel;
     private Scanner sc = new Scanner(System.in);
-    private final Consumer consumer; 
+    private final Consumer consumer;
     boolean autoAck;
 
     public MessengerClient() throws IOException, TimeoutException {
@@ -52,27 +54,39 @@ public class MessengerClient {
         autoAck = false; // acknowledgment is covered below
 
     }
-    
-    public int login(String userid , String password){
-        
+
+    public int login(String userid, String password) throws IOException {
+        channel.queueDeclare(userid, false, false, false, null);
+        channel.basicConsume(userid, autoAck, consumer);
         return 0;
     }
 
-    public int register() throws IOException {
+    public int register() throws IOException, InterruptedException {
         String queueName = channel.queueDeclare().getQueue();
-        System.out.println("qn" + queueName);
-        channel.basicConsume(queueName, autoAck, consumer);
+        QueueingConsumer qc = new QueueingConsumer(channel);
+        channel.basicConsume(queueName, autoAck, qc);
         System.out.print("Masukkan userid : ");
         String userid = sc.nextLine();
         System.out.print("Masukkan password : ");
         String password = sc.nextLine();
-        String content = "register "+queueName+" "+userid+ " "+password;
+        String content = "register " + userid + " " + password;
         Message m = new Message(2, userid, content);
-        channel.basicPublish("", serverqueue, null, m.toBytes());
-        
+        String corrId = java.util.UUID.randomUUID().toString();
 
-        //process response 
-        
+        BasicProperties props = new BasicProperties.Builder()
+                .correlationId(corrId)
+                .replyTo(queueName)
+                .build();
+
+        channel.basicPublish("", serverqueue, props, m.toBytes());
+
+        while (true) {
+            QueueingConsumer.Delivery delivery = qc.nextDelivery();
+            if (delivery.getProperties().getCorrelationId().equals(corrId)) {
+                //response = new String(delivery.getBody());
+                break;
+            }
+        }
         return 0;
 
     }

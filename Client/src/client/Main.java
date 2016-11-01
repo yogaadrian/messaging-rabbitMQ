@@ -47,7 +47,7 @@ public class Main {
                 try {
                     doWork(message);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(rabbitmqtes.MessengerClient.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(MessengerClient.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
                     System.out.println(" [x] Done");
                     channel.basicAck(envelope.getDeliveryTag(), false);
