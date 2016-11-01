@@ -36,12 +36,13 @@ public class MessengerClient {
     boolean autoAck;
 
     public MessengerClient() throws IOException, TimeoutException {
+
         factory = new ConnectionFactory();
         factory.setHost("localhost");
         connection = factory.newConnection();
         channel = connection.createChannel();
         channel.basicQos(10); // accept only one unack-ed message at a time (see below)
-
+        channel.queueDeclare(serverqueue,true,false,false,null);
         consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
@@ -77,7 +78,7 @@ public class MessengerClient {
                 .correlationId(corrId)
                 .replyTo(queueName)
                 .build();
-
+        System.out.println("aaaaa");
         channel.basicPublish("", serverqueue, props, m.toBytes());
 
         while (true) {
@@ -85,9 +86,9 @@ public class MessengerClient {
             if (delivery.getProperties().getCorrelationId().equals(corrId)) {
                 //response = new String(delivery.getBody());
                 Message response = Message.toMessage(delivery.getBody());
-                if(response.getContent()=="success"){
+                if (response.getContent() == "success") {
                     System.out.println("berhasil");
-                }else{
+                } else {
                     System.out.println("gagal");
                 }
                 break;
