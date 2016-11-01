@@ -12,6 +12,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 
 /**
  *
@@ -22,6 +23,11 @@ public class Message implements java.io.Serializable{
     private int type;
     private String sender;
     private String content;
+    private ArrayList<String> userids;
+    
+    private ArrayList<String> listgroup;
+    
+    private ArrayList<String> listfriend;
 //    private String command;
 //    private String userid;
 //    private String password;
@@ -31,6 +37,9 @@ public class Message implements java.io.Serializable{
         this.type = type;
         this.sender = sender;
         this.content = content;
+        userids=null;
+        listfriend=null;
+        listgroup=null;
 //        this.command = null;
 //        this.userid = null;
 //        this.password = null;
@@ -67,6 +76,17 @@ public class Message implements java.io.Serializable{
     public String getContent() {
         return content;
     }
+    
+    public ArrayList<String> getListUser(){
+        return userids;
+    }
+    public ArrayList<String> getListFriend(){
+        return listfriend;
+    }
+    public ArrayList<String> getListGroup(){
+        return listgroup;
+    }
+    
 //    public String getCommand(){
 //        return command;
 //    }
@@ -87,6 +107,16 @@ public class Message implements java.io.Serializable{
 
     public void setContent(String vcontent) {
         content = vcontent;
+    }
+    
+    public void setUserIDs(ArrayList<String> vuserids) {
+        userids= new ArrayList<String>(vuserids);
+    }
+    public void setListFriend(ArrayList<String> vlistfriend) {
+        userids= new ArrayList<String>(vlistfriend);
+    }
+    public void setListGroup(ArrayList<String> vlistgroup) {
+        userids= new ArrayList<String>(vlistgroup);
     }
 //    public void setCommand(String vcommand){
 //        command=vcommand;
