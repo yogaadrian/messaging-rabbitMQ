@@ -37,7 +37,7 @@ public class Message {
 
     }
 
-    public Message toMessage(byte[] bytes) throws IOException, ClassNotFoundException {
+    public static Message toMessage(byte[] bytes) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInput in = null;
         Message m;

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package rabbitmqtes;
+package client;
 
 import client.Message;
 import com.rabbitmq.client.AMQP;
@@ -61,7 +61,7 @@ public class MessengerClient {
         return 0;
     }
 
-    public int register() throws IOException, InterruptedException {
+    public int register() throws IOException, InterruptedException, ClassNotFoundException {
         String queueName = channel.queueDeclare().getQueue();
         QueueingConsumer qc = new QueueingConsumer(channel);
         channel.basicConsume(queueName, autoAck, qc);
@@ -84,6 +84,12 @@ public class MessengerClient {
             QueueingConsumer.Delivery delivery = qc.nextDelivery();
             if (delivery.getProperties().getCorrelationId().equals(corrId)) {
                 //response = new String(delivery.getBody());
+                Message response = Message.toMessage(delivery.getBody());
+                if(response.getContent()=="success"){
+                    System.out.println("berhasil");
+                }else{
+                    System.out.println("gagal");
+                }
                 break;
             }
         }
