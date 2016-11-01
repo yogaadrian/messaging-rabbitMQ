@@ -17,7 +17,7 @@ import java.io.ObjectOutputStream;
  *
  * @author yoga
  */
-public class Message {
+public class Message implements java.io.Serializable{
 
     private int type;
     private String sender;
