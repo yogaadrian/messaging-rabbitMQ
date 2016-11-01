@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package rabbitmqtes;
+package client;
 
 import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
@@ -20,11 +20,11 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author FiqieUlya
+ * @author yoga
  */
-public class Client {
+public class Main {
 
-    private final static String EXCHANGE_NAME = "hello";
+   private final static String EXCHANGE_NAME = "hello";
 
     public static void main(String[] argv)
             throws java.io.IOException, java.lang.InterruptedException, TimeoutException {
@@ -47,7 +47,7 @@ public class Client {
                 try {
                     doWork(message);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(rabbitmqtes.MessengerClient.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
                     System.out.println(" [x] Done");
                     channel.basicAck(envelope.getDeliveryTag(), false);
@@ -75,4 +75,5 @@ public class Client {
             }
         }
     }
+    
 }
