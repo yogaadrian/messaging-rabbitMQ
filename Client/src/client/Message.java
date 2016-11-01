@@ -23,11 +23,14 @@ public class Message implements java.io.Serializable{
     private int type;
     private String sender;
     private String content;
+    private String namagroup;
     private ArrayList<String> userids;
     
     private ArrayList<String> listgroup;
     
     private ArrayList<String> listfriend;
+    
+    private String friendid;
 //    private String command;
 //    private String userid;
 //    private String password;
@@ -77,6 +80,14 @@ public class Message implements java.io.Serializable{
         return content;
     }
     
+    public String getGroupName() {
+        return namagroup;
+    }
+    
+    public String getFriendID() {
+        return friendid;
+    }
+    
     public ArrayList<String> getListUser(){
         return userids;
     }
@@ -107,6 +118,13 @@ public class Message implements java.io.Serializable{
 
     public void setContent(String vcontent) {
         content = vcontent;
+    }
+    
+    public void setGroupName(String vnamagroup) {
+        content = vnamagroup;
+    }
+    public void setFriendID(String vfriendid) {
+        content = vfriendid;
     }
     
     public void setUserIDs(ArrayList<String> vuserids) {

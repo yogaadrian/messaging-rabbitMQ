@@ -54,22 +54,40 @@ public class MessengerClient {
                 String message = new String(body, "UTF-8");
                 System.out.println(" [x] Received '" + message + "'");
                 channel.basicAck(envelope.getDeliveryTag(), false);
-                Message m=null;
+                Message m = null;
                 try {
                     m = Message.toMessage(body);
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(MessengerClient.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                switch(m.getType()){
-                    case 0:{
+                switch (m.getType()) {
+                    case 0: {
+                        System.out.println(m.getSender() +" : "+m.getContent());
                         break;
                     }
-                    case 1:{
+                    case 1: {
+                        System.out.println(m.getGroupName() + " , " +m.getSender() + " : "+m.getContent());
                         break;
                     }
-                    case 2:{
-                        switch(m.getContent()){
-                            case "Group has been already exist":{
+                    case 2: {
+                        switch (m.getContent()) {
+                            case "joingroup": {
+                                listgroup.add(m.getGroupName());
+                                System.out.println("join group " + m.getGroupName());
+                                break;
+                            }
+                            case "leavegroup": {
+                                listgroup.remove(m.getGroupName());
+                                System.out.println("leave group " + m.getGroupName());
+                                break;
+                            }
+                            case "addfriend": {
+                                listfriend.add(m.getFriendID());
+                                System.out.println("addfriend "+ m.getFriendID());
+                                break;
+                            }
+                            default: {
+                                System.out.println(m.getContent());
                                 break;
                             }
                         }
@@ -81,11 +99,84 @@ public class MessengerClient {
         autoAck = false; // acknowledgment is covered below
 
     }
+    
+    public int chatFriend () throws IOException{
+        if (isLogin){
+            System.out.print("Masukkan nama teman : ");
+            String namauser = sc.nextLine();
+            if (!listfriend.contains((String) namauser) || id.equalsIgnoreCase(namauser)) {
+                System.out.println("tidak ada teman itu");
+                return 0;
+            }
+            String content =sc.nextLine();
+            Message m = new Message(0, id, content);
+            m.setFriendID(namauser);
+            channel.basicPublish("", serverqueue, null, m.toBytes());
+            return 1;
+        }
+        return 0;
+    }
+    
+    public int chatGroup () throws IOException{
+        if (isLogin){
+            System.out.print("Masukkan nama group : ");
+            String namagroup = sc.nextLine();
+            if (!listgroup.contains((String) namagroup)) {
+                System.out.println("tidak ada group itu");
+                return 0;
+            }
+            String content =sc.nextLine();
+            Message m = new Message(1, id, content);
+            m.setGroupName(namagroup);
+            channel.basicPublish("", serverqueue, null, m.toBytes());
+            return 1;
+        }
+        return 0;
+    }
+
+    public int addFriend() throws IOException {
+        if (isLogin) {
+            System.out.print("Masukkan nama teman : ");
+            String namauser = sc.nextLine();
+            if (listfriend.contains((String) namauser) || id.equalsIgnoreCase(namauser)) {
+                System.out.println("sudah menjadi teman");
+                return 0;
+            }
+            String content = "addfriend";
+            Message m = new Message(2, id, content);
+            m.setFriendID(namauser);
+            channel.basicPublish("", serverqueue, null, m.toBytes());
+            return 1;
+
+        }
+        return 0;
+    }
+
+    public int leaveGroup() throws IOException {
+        if (isLogin) {
+            System.out.print("Masukkan nama grup : ");
+            String namagrup = sc.nextLine();
+            if (!listgroup.contains((String) namagrup)) {
+                System.out.println("tidak terdaftar dalam grup");
+                return 0;
+            }
+            String content = "creategroup";
+            Message m = new Message(2, id, content);
+            m.setGroupName(namagrup);
+            channel.basicPublish("", serverqueue, null, m.toBytes());
+            return 1;
+        }
+        return 0;
+    }
 
     public int createGroup() throws IOException {
         if (isLogin) {
             System.out.print("Masukkan nama grup : ");
             String namagrup = sc.nextLine();
+            if (listgroup.contains((String) namagrup)) {
+                System.out.println("sudah terdaftar dalam group");
+                return 0;
+            }
             System.out.println("Masukkan user id member dengan menekan enter setelah setiap user id. masukkan -1 untuk berhenti");
             String userid = sc.nextLine();
             ArrayList<String> listusers = new ArrayList<String>();
@@ -93,12 +184,16 @@ public class MessengerClient {
                 listusers.add(userid);
                 userid = sc.nextLine();
             }
-            String content = "creategroup " + namagrup;
+            String content = "creategroup";
             Message m = new Message(2, id, content);
+            m.setGroupName(namagrup);
             m.setUserIDs(listusers);
             channel.basicPublish("", serverqueue, null, m.toBytes());
+            return 1;
+        } else {
+            return 0;
         }
-        return 0;
+
     }
 
     public int login() throws IOException, InterruptedException, ClassNotFoundException {
@@ -125,10 +220,10 @@ public class MessengerClient {
                 Message response = Message.toMessage(delivery.getBody());
                 if (response.getContent().equalsIgnoreCase("success")) {
                     System.out.println("berhasil");
-                    listfriend=new ArrayList<String>(m.getListFriend());
-                    listgroup=new ArrayList<String>(m.getListGroup());
+                    listfriend = new ArrayList<String>(m.getListFriend());
+                    listgroup = new ArrayList<String>(m.getListGroup());
                     isLogin = true;
-                    id=userid;
+                    id = userid;
                     channel.queueDeclare(userid, true, false, false, null);
                     channel.basicConsume(userid, true, consumer);
                     return 1;
