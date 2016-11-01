@@ -23,6 +23,7 @@ import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import client.Message;
 /**
  *
  * @author yoga
@@ -54,24 +55,28 @@ public class MessengerServer {
         consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                System.out.println("dapet");
                 Message message;
+                System.out.println("dapet");
                 try {
                     message = Message.toMessage(body);
+                    System.out.println(message.getType());
                     switch(message.getType()){
                         //PM
-                        case 1 : {
+                        case 0 : {
                             break;
                         }
                         //GROUP
-                        case 2: {
+                        case 1: {
                             break;
                         }
                         //COMMAND
-                        case 3: {
+                        case 2: {
                             String [] contents = message.getContent().split(" ");
+                            System.out.println(contents[0]);
                             if(contents[0].equalsIgnoreCase("register")){
-                                String userId = contents[2];
-                                String password = contents[3];
+                                String userId = contents[1];
+                                String password = contents[2];
                                 Message m;
                                 if(getUser(userId).equalsIgnoreCase(userId)){
                                     System.out.println("user does exist!");
