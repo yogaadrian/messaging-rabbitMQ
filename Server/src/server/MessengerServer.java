@@ -49,7 +49,7 @@ public class MessengerServer {
 
         channel.queueDeclare(SERVER_QUEUE_NAME, true, false, false, null);
 
-        channel.basicQos(10);
+        //channel.basicQos(10);
 
         ArrayList<String> groupNames = getGroups();
         for (String name : groupNames) {
