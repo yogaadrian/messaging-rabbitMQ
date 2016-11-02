@@ -34,6 +34,39 @@ public class Main {
                     mclient.register();
                     break;
                 }
+                case "login":{
+                    mclient.login();
+                    break;
+                }
+                case "create-group":{
+                    mclient.createGroup();
+                    break;
+                }
+                case "leave-group":{
+                    mclient.leaveGroup();
+                    break;
+                }
+                case "add-friend":{
+                    mclient.addFriend();
+                    break;
+                }
+                case "chat-group":{
+                    mclient.chatGroup();
+                    break;
+                }
+                case "chat-friend":{
+                    mclient.chatFriend();
+                    break;
+                }
+                case "get-friends":{
+                    mclient.getFriends();
+                    break;
+                }
+                case "get-groups":{
+                    mclient.getGroups();
+                    break;
+                }
+                
             }
             
         }

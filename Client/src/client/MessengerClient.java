@@ -100,6 +100,28 @@ public class MessengerClient {
 
     }
     
+    public int getFriends () throws IOException{
+        if (isLogin){
+            System.out.println("[List Friend]");
+            for (int i=0; i<listfriend.size();i++){
+                System.out.println(listfriend.get(i));
+            }
+            return 1;
+        }
+        return 0;
+    }
+    
+    public int getGroups () throws IOException{
+        if (isLogin){
+            System.out.println("[List Group]");
+            for (int i=0; i<listgroup.size();i++){
+                System.out.println(listgroup.get(i));
+            }
+            return 1;
+        }
+        return 0;
+    }
+    
     public int chatFriend () throws IOException{
         if (isLogin){
             System.out.print("Masukkan nama teman : ");
