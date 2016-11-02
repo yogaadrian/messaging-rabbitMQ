@@ -134,19 +134,14 @@ public class Message implements java.io.Serializable {
     }
 
     public void setListFriend(ArrayList<String> vlistfriend) {
-        listfriend = new ArrayList<String>();
-        for (int i = 0; i < vlistfriend.size(); i++) {
-            listfriend.add(vlistfriend.get(i));
-        }
+        listfriend = new ArrayList<String>(vlistfriend);
+
     }
 
     public void setListGroup(ArrayList<String> vlistgroup) {
-        listgroup = new ArrayList<String>();
-        for (int i = 0; i < vlistgroup.size(); i++) {
-            listgroup.add(vlistgroup.get(i));
-            System.out.println(listgroup.get(i));
-        }
-        
+        listgroup = new ArrayList<String>(vlistgroup);
+
+
     }
 //    public void setCommand(String vcommand){
 //        command=vcommand;
