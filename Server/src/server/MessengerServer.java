@@ -71,11 +71,19 @@ public class MessengerServer {
                     switch (message.getType()) {
                         //PM
                         case 0: {
-                            
+                            System.out.println("PERSONAL MESSAGE: " + message.getSender());
+                            if(isFriend(message.getSender(), message.getFriendID())){
+                                sendMessage(message.getFriendID(), message.getSender(), message.getContent());
+                            } else {
+                                String response = "dia bukan teman anda";
+                                sendMessage(message.getFriendID(), message.getSender(), message.getContent());
+                            }
                             break;
                         }
                         //GROUP
                         case 1: {
+                            System.out.println("GROUP MESSAGE: " + message.getSender());
+                            sendGroupMessage(message.getGroupName(),message.getSender(),message.getContent());
                             break;
                         }
                         //COMMAND
@@ -137,10 +145,32 @@ public class MessengerServer {
                                 mu.setListGroup(getGroups(message.getSender()));
                                 channel.basicPublish("", message.getSender(), null, mu.toBytes());
                             } else if (contents[0].equalsIgnoreCase("leavegroup")) {
-                                System.out.println("LEAVE GROUP");
+                                System.out.println("LEAVE GROUP: " + message.getSender());
                                 String res = leaveGroup(message.getGroupName(), message.getSender());
                                 System.out.println("LEAVEGROUP: " + res);
                                 sendMessage(message.getSender(), SERVER_QUEUE_NAME, res, 2);
+                            } else if (contents[0].equalsIgnoreCase("addusertogroup")) {
+                                System.out.println("JOIN GROUP: " + message.getSender());
+                                String res = joinGroup(message.getGroupName(),message.getFriendID(),message.getSender());
+                                System.out.println("JOIN GROUP: " + res);
+                                sendMessage(message.getSender(), SERVER_QUEUE_NAME, res, 2);
+                                
+                                channel.queueBind(message.getFriendID(), message.getGroupName(), "");
+                                
+                                sendMessage(message.getFriendID(), SERVER_QUEUE_NAME, "joined group " + message.getGroupName(), 2);
+                            } else if (contents[0].equalsIgnoreCase("addfriend")){
+                                System.out.println("ADD FRIEND: " + message.getSender());
+                                if(!isFriend(message.getSender(),message.getFriendID())){
+                                    if(addFriend(message.getSender(),message.getFriendID())) {
+                                        sendFriendMessage(message.getSender(), message.getFriendID(), message.getContent(), 2);
+                                        sendFriendMessage(message.getFriendID(), message.getSender(), message.getContent(), 2);
+                                    } else{
+                                        System.out.println("ADD FRIEND: GAGAL");
+                                    }
+                                } else {
+                                    String res = "sudah berteman";
+                                    sendMessage(message.getSender(), SERVER_QUEUE_NAME, res, 2);
+                                }
                             }
                             break;
                         }
@@ -526,9 +556,9 @@ public class MessengerServer {
         return result;
     }
 
-    public void sendGroup(String groupId, String sender, String content) throws IOException {
+    public void sendGroupMessage(String groupId, String sender, String content) throws IOException {
         String message = sender + "= " + content;
-        System.out.println("sendMessage: " + message);
+        System.out.println("Send Group Message: " + message);
         ArrayList<String> receivers = getReceiverMember(groupId, sender);
         //channel.queueBind(name, message.getGroupName(), "");                        
         Message m = new Message(1, SERVER_QUEUE_NAME, content);
@@ -546,6 +576,11 @@ public class MessengerServer {
     public void sendMessage(String receiver, String sender, String content, int type) throws IOException {
         Message mu = new Message(type, sender, content);
         mu.setFriendID(receiver);
+        channel.basicPublish("", receiver, null, mu.toBytes());
+    }
+    public void sendFriendMessage(String receiver, String friend, String content, int type) throws IOException {
+        Message mu = new Message(type, SERVER_QUEUE_NAME, content);
+        mu.setFriendID(friend);
         channel.basicPublish("", receiver, null, mu.toBytes());
     }
 }
