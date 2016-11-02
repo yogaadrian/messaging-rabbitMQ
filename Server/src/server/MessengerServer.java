@@ -49,11 +49,16 @@ public class MessengerServer {
 
         channel.queueDeclare(SERVER_QUEUE_NAME, true, false, false, null);
 
-        channel.basicQos(1);
+        channel.basicQos(10);
 
         ArrayList<String> groupNames = getGroups();
         for (String name : groupNames) {
             channel.exchangeDeclare(name, "fanout");
+        }
+        
+        ArrayList<String> userNames = getUserId();
+        for (String name : userNames) {
+            channel.queueDeclare(name, true,false,false,null);
         }
         //consumer = new QueueingConsumer(channel);
         //channel.basicConsume(SERVER_QUEUE_NAME, false, consumer);
@@ -208,6 +213,22 @@ public class MessengerServer {
             if (count < 1) {
                 result = "empty";
             }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+    
+    public ArrayList<String> getUserId() {
+        ArrayList<String> result = new ArrayList();
+        try {
+            String sql = "SELECT * FROM User";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            ResultSet res = dbStatement.executeQuery();
+            if (res.next()) {
+                result.add(res.getString("user_id"));
+            }
+            res.close();
         } catch (SQLException ex) {
             Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
         }
