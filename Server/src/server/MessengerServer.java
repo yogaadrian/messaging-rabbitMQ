@@ -24,7 +24,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import client.Message;
-import com.rabbitmq.client.MessageProperties;
 import java.util.ArrayList;
 
 /**
@@ -50,7 +49,7 @@ public class MessengerServer {
 
         channel.queueDeclare(SERVER_QUEUE_NAME, true, false, false, null);
 
-        channel.basicQos(1);
+        //channel.basicQos(1);
 
         ArrayList<String> groupNames = getGroups();
         for (String name : groupNames) {
@@ -71,7 +70,7 @@ public class MessengerServer {
                 System.out.println("dapet");
                 Message message;
                 System.out.println("dapet");
-                channel.basicAck(envelope.getDeliveryTag(), false);
+                //channel.basicAck(envelope.getDeliveryTag(), false);
                 try {
                     message = Message.toMessage(body);
                     System.out.println(message.getType());
@@ -143,14 +142,14 @@ public class MessengerServer {
                                     }
                                     m = new Message(2, SERVER_QUEUE_NAME, "joingroup");
                                     m.setGroupName(message.getGroupName());
-                                    channel.basicPublish(message.getGroupName(), "", MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+                                    channel.basicPublish(message.getGroupName(), "", null, m.toBytes());
                                 }else{
                                     System.out.println("CREATE GROUP: GAGAL");
                                 }
                                 //send to sender
                                 Message mu = new Message(2, SERVER_QUEUE_NAME, res);
                                 mu.setListGroup(getGroups(message.getSender()));
-                                channel.basicPublish("", message.getSender(), MessageProperties.PERSISTENT_TEXT_PLAIN, mu.toBytes());
+                                channel.basicPublish("", message.getSender(), null, mu.toBytes());
                             } else if (contents[0].equalsIgnoreCase("leavegroup")) {
                                 System.out.println("LEAVE GROUP: " + message.getSender());
                                 String res = leaveGroup(message.getGroupName(), message.getSender());
@@ -195,7 +194,7 @@ public class MessengerServer {
                  }*/
             }
         };
-        boolean autoAck = false; // acknowledgment is covered below
+        boolean autoAck = true; // acknowledgment is covered below
         channel.basicConsume(SERVER_QUEUE_NAME, autoAck, consumer);
     }
 
@@ -312,8 +311,8 @@ public class MessengerServer {
                 return "FAIL";
             }
             String temp = "";
+            member.add(Admin);
             if (!member.isEmpty()) {
-                member.add(Admin);
                 for (String name : member) {
                     if (!getUserName(name).equalsIgnoreCase("empty")) {
                         try {
@@ -587,23 +586,23 @@ public class MessengerServer {
         Message m = new Message(1, SERVER_QUEUE_NAME, content);
         m.setGroupName(groupId);
         m.setSender(sender);
-        channel.basicPublish(groupId, "", MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+        channel.basicPublish(groupId, "", null, m.toBytes());
     }
 
     public void sendMessage(String receiver, String sender, String content) throws IOException {
         Message mu = new Message(0, sender, content);
         mu.setFriendID(receiver);
-        channel.basicPublish("", receiver, MessageProperties.PERSISTENT_TEXT_PLAIN, mu.toBytes());
+        channel.basicPublish("", receiver, null, mu.toBytes());
     }
     
     public void sendMessage(String receiver, String sender, String content, int type) throws IOException {
         Message mu = new Message(type, sender, content);
         mu.setFriendID(receiver);
-        channel.basicPublish("", receiver, MessageProperties.PERSISTENT_TEXT_PLAIN, mu.toBytes());
+        channel.basicPublish("", receiver, null, mu.toBytes());
     }
     public void sendFriendMessage(String receiver, String friend, String content, int type) throws IOException {
         Message mu = new Message(type, SERVER_QUEUE_NAME, content);
         mu.setFriendID(friend);
-        channel.basicPublish("", receiver, MessageProperties.PERSISTENT_TEXT_PLAIN, mu.toBytes());
+        channel.basicPublish("", receiver, null, mu.toBytes());
     }
 }
