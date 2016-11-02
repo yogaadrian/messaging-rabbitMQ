@@ -105,8 +105,11 @@ public class MessengerServer {
                                 System.out.println(loginUser(contents[1], contents[2]));
 
                                 m = new Message(2, SERVER_QUEUE_NAME, loginUser(contents[1], contents[2]));
-                                m.setListFriend(getFriends(contents[1]));
-                                m.setListGroup(getGroups(contents[1]));
+                                System.out.println("Friends: " + getFriends(message.getSender()).size());
+                                m.setListFriend(getFriends(message.getSender()));
+                                
+                                System.out.println("Groups: " + getGroups(message.getSender()).size());
+                                m.setListGroup(getGroups(message.getSender()));
                                 BasicProperties replyProps = new BasicProperties.Builder()
                                         .correlationId(properties.getCorrelationId())
                                         .build();
@@ -135,6 +138,9 @@ public class MessengerServer {
                                 channel.basicPublish("", message.getSender(), null, mu.toBytes());
                             } else if (contents[0].equalsIgnoreCase("leavegroup")) {
                                 System.out.println("LEAVE GROUP");
+                                String res = leaveGroup(message.getGroupName(), message.getSender());
+                                System.out.println("LEAVEGROUP: " + res);
+                                sendMessage(message.getSender(), SERVER_QUEUE_NAME, res, 2);
                             }
                             break;
                         }
@@ -489,7 +495,7 @@ public class MessengerServer {
                 dbStatement.executeUpdate();
 
                 dbStatement.close();
-                return "success";
+                return "leavegroup";
             }
         } catch (SQLException ex) {
             Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
@@ -533,6 +539,12 @@ public class MessengerServer {
 
     public void sendMessage(String receiver, String sender, String content) throws IOException {
         Message mu = new Message(0, sender, content);
+        mu.setFriendID(receiver);
+        channel.basicPublish("", receiver, null, mu.toBytes());
+    }
+    
+    public void sendMessage(String receiver, String sender, String content, int type) throws IOException {
+        Message mu = new Message(type, sender, content);
         mu.setFriendID(receiver);
         channel.basicPublish("", receiver, null, mu.toBytes());
     }
