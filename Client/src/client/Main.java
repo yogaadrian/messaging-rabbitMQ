@@ -27,6 +27,7 @@ public class Main {
     
     public static void main(String[] argv) throws IOException, TimeoutException, InterruptedException, ClassNotFoundException {
         MessengerClient mclient = new MessengerClient();
+        System.out.println("Masukkan Command. masukkan 'help' untuk mendapatkan petunjuk list command");
         while(true){
             String command = sc.nextLine();
             switch(command) {
@@ -66,10 +67,29 @@ public class Main {
                     mclient.getGroups();
                     break;
                 }
+                case "help":{
+                    break;
+                }
+                default:{
+                    System.out.println("Inputan salah");
+                }
                 
             }
             
         }
+    }
+    
+    public static void help(){
+        System.out.println("'register' untuk mendaftarkan user baru");
+        System.out.println("'login' untuk masuk ke aplikasi dengan user yang sudah terdaftar");
+        System.out.println("command dibawah ini memerlukan login terlebih dahulu");
+        System.out.println("'create-group' untuk mendaftarkan grup baru");
+        System.out.println("'leave-group' untuk meninggalkan group yang diikuti");
+        System.out.println("'add-friend' untuk menambahkan teman baru");
+        System.out.println("'chat-group' untuk chat ke group yang terdaftar");
+        System.out.println("'chat-friend' untuk chat ke teman yang terdaftar");
+        System.out.println("'get-friends' untuk mendapatkan list teman yang terdaftar");
+        System.out.println("'get-groups' untuk mendaftarkan list group yang terdaftar");
     }
 
 
