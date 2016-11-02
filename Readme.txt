@@ -16,6 +16,150 @@ Cara Menjalankan Program
 3. Tekan help untuk mendapatkan list command.
 
 Tes
+1. Help(Fungsi tambahan)
+>> help
+
+'register' untuk mendaftarkan user baru
+'login' untuk masuk ke aplikasi dengan user yang sudah terdaftar
+command dibawah ini memerlukan login terlebih dahulu
+'create-group' untuk mendaftarkan grup baru
+'leave-group' untuk meninggalkan group yang diikuti
+'add-friend' untuk menambahkan teman baru
+'chat-group' untuk chat ke group yang terdaftar
+'chat-friend' untuk chat ke teman yang terdaftar
+'get-friends' untuk mendapatkan list teman yang terdaftar
+'get-groups' untuk mendaftarkan list group yang terdaftar
+
+2. Tanpa Login
+	>>get-friends
+	Perlu melakukan login
+	>>get-groups
+	Perlu melakukan login
+	>>create-group
+	Perlu melakukan login
+	>>leave-group
+	Perlu melakukan login
+	>>add-friend
+	Perlu melakukan login
+	>>chat-group
+	Perlu melakukan login
+	>>chat-friend
+	Perlu melakukan login
+	
+3. Register
+	>> register
+	Masukkan userid : budi
+	Masukkan password : 123
+	berhasil
+
+	>> register (ulang)
+	Masukkan userid : budi
+	Masukkan password : 123
+	gagal
+	
+4. Login
+	>>login (password salah)
+	Masukkan userid : budi
+	Masukkan password : 124
+	gagal
+	
+	>>login (password dan user benar)
+	Masukkan userid : budi
+	Masukkan password : 123
+	berhasil
+
+	>>login (user id salah)
+	Masukkan userid : tito
+	Masukkan password : 123
+	gagal
+	
+5. List Friends and List Group
+	>>login
+	Masukkan userid : yoga
+	Masukkan password : 123
+	berhasil
+	
+	>>get-friends
+	[List Friend]
+	
+	>>get-groups
+	[List Group]
+	t1
+	test
+	a
+	
+6. Leave Group
+	>>login
+	Masukkan userid : yoga
+	Masukkan password : 123
+	berhasil
+	>>leave-group
+	Masukkan nama grup : test
+	leave group NULL
+	
+7. Add Friend
+(kasus berhasil)
+login
+Masukkan userid : yoga
+Masukkan password : 123
+berhasil
+add-friend
+Masukkan nama teman : fiqie
+addfriend fiqie
+
+login
+Masukkan userid : fiqie
+Masukkan password : 123
+berhasil
+addfriend yoga
+
+(kasus sudah berteman)
+login
+Masukkan userid : yoga
+Masukkan password : 123
+berhasil
+add-friend
+Masukkan nama teman : fiqie
+sudah menjadi teman
+
+chat-friend
+Masukkan nama teman : budi
+tidak ada teman itu
+
+login
+Masukkan userid : yoga
+Masukkan password : 123
+berhasil
+chat-friend
+Masukkan nama teman : fiqie
+wowow
+<client lain>
+login
+Masukkan userid : fiqie
+Masukkan password : 123
+berhasil
+yoga : wowow
+
+
+chat-group
+login
+Masukkan userid : yoga
+Masukkan password : 123
+berhasil
+chat-group
+Masukkan nama group : a
+coba
+a , yoga : coba
+
+<client lain>
+login
+Masukkan userid : fiqie
+Masukkan password : 123
+berhasil
+a , yoga : coba
+
+
+
 
 
 Langkah-langkah melakukan tes
