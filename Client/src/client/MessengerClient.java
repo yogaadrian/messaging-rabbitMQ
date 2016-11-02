@@ -224,7 +224,6 @@ public class MessengerClient {
         if (isLogin) {
             System.out.print("Masukkan nama grup : ");
             String namagrup = sc.nextLine();
-            System.out.println(listgroup.isEmpty());
             if (!listgroup.isEmpty() && listgroup.contains((String) namagrup)) {
                 System.out.println("sudah terdaftar dalam group");
                 return 0;

@@ -47,6 +47,10 @@ public class Main {
                     mclient.leaveGroup();
                     break;
                 }
+                case "add-user-to-group":{
+                    mclient.addUsertoGroup();
+                    break;
+                }
                 case "add-friend":{
                     mclient.addFriend();
                     break;
@@ -68,6 +72,7 @@ public class Main {
                     break;
                 }
                 case "help":{
+                    help();
                     break;
                 }
                 default:{
@@ -85,6 +90,7 @@ public class Main {
         System.out.println("command dibawah ini memerlukan login terlebih dahulu");
         System.out.println("'create-group' untuk mendaftarkan grup baru");
         System.out.println("'leave-group' untuk meninggalkan group yang diikuti");
+        System.out.println("'add-user-to-group' untuk menambahkan user ke sebuah group. pelaku command harus berupa admin");
         System.out.println("'add-friend' untuk menambahkan teman baru");
         System.out.println("'chat-group' untuk chat ke group yang terdaftar");
         System.out.println("'chat-friend' untuk chat ke teman yang terdaftar");
