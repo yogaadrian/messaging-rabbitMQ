@@ -14,7 +14,6 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.MessageProperties;
 import com.rabbitmq.client.QueueingConsumer;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public class MessengerClient {
     private Channel channel;
     private Scanner sc = new Scanner(System.in);
     private final Consumer consumer;
-    boolean autoAck;
+    boolean autoAck = true;
     private boolean isLogin;
     private String id;
     private ArrayList<String> listfriend, listgroup;
@@ -46,13 +45,13 @@ public class MessengerClient {
         factory.setHost("localhost");
         connection = factory.newConnection();
         channel = connection.createChannel();
-        channel.basicQos(1); // accept only one unack-ed message at a time (see below)
+        //channel.basicQos(1); // accept only one unack-ed message at a time (see below)
         channel.queueDeclare(serverqueue, true, false, false, null);
         consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                     throws IOException {
-                channel.basicAck(envelope.getDeliveryTag(), false);
+                //channel.basicAck(envelope.getDeliveryTag(), false);
                 Message m = null;
                 try {
                     m = Message.toMessage(body);
@@ -95,7 +94,7 @@ public class MessengerClient {
                 }
             }
         };
-        autoAck = false; // acknowledgment is covered below
+        autoAck = true; // acknowledgment is covered below
 
     }
 
@@ -134,7 +133,7 @@ public class MessengerClient {
             String content = sc.nextLine();
             Message m = new Message(0, id, content);
             m.setFriendID(namauser);
-            channel.basicPublish("", serverqueue, MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+            channel.basicPublish("", serverqueue, null, m.toBytes());
             return 1;
         }
         System.out.println("Perlu melakukan login");
@@ -152,7 +151,7 @@ public class MessengerClient {
             String content = sc.nextLine();
             Message m = new Message(1, id, content);
             m.setGroupName(namagroup);
-            channel.basicPublish("", serverqueue, MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+            channel.basicPublish("", serverqueue, null, m.toBytes());
             return 1;
         }
         System.out.println("Perlu melakukan login");
@@ -170,7 +169,7 @@ public class MessengerClient {
             String content = "addfriend";
             Message m = new Message(2, id, content);
             m.setFriendID(namauser);
-            channel.basicPublish("", serverqueue, MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+            channel.basicPublish("", serverqueue, null, m.toBytes());
             return 1;
 
         }
@@ -189,7 +188,7 @@ public class MessengerClient {
             String content = "leavegroup";
             Message m = new Message(2, id, content);
             m.setGroupName(namagrup);
-            channel.basicPublish("", serverqueue, MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+            channel.basicPublish("", serverqueue, null, m.toBytes());
             return 1;
         }
         System.out.println("Perlu melakukan login");
@@ -212,7 +211,7 @@ public class MessengerClient {
             Message m = new Message(2, id, content);
             m.setGroupName(namagrup);
             m.setFriendID(userid);
-            channel.basicPublish("", serverqueue, MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+            channel.basicPublish("", serverqueue, null, m.toBytes());
             return 1;
         } else {
             System.out.println("Perlu melakukan login");
@@ -240,7 +239,7 @@ public class MessengerClient {
             Message m = new Message(2, id, content);
             m.setGroupName(namagrup);
             m.setUserIDs(listusers);
-            channel.basicPublish("", serverqueue, MessageProperties.PERSISTENT_TEXT_PLAIN, m.toBytes());
+            channel.basicPublish("", serverqueue, null, m.toBytes());
             return 1;
         } else {
             System.out.println("Perlu melakukan login");
