@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import client.Message;
+import java.util.ArrayList;
 /**
  *
  * @author yoga
@@ -78,8 +79,8 @@ public class MessengerServer {
                                 String userId = contents[1];
                                 String password = contents[2];
                                 Message m;
-                                if(getUser(userId).equalsIgnoreCase(userId)){
-                                    System.out.println("user does exist!");
+                                if(getUserName(userId).equalsIgnoreCase(userId)){
+                                    System.out.println("user already exist!");
                                     m = new Message(1, SERVER_QUEUE_NAME, "FAIL");
                                 }else{
                                     registerUser(userId, password);
@@ -92,6 +93,11 @@ public class MessengerServer {
                                      .build();
                                 
                                 channel.basicPublish("", properties.getReplyTo(), replyProps, m.toBytes());
+                            } else if(contents[0].equalsIgnoreCase("login")) {
+                                loginUser(contents[1],contents[2]);
+                                //BIKIN LIST FRIEND SAMA LIST GROUP
+                            } else if(contents[0].equalsIgnoreCase("creategroup")) {
+                                //createGroup(contents[1],, message.getSender());
                             }
                             break;
                         }
@@ -113,7 +119,7 @@ public class MessengerServer {
         channel.basicConsume(SERVER_QUEUE_NAME, autoAck, consumer);
     }
     
-    public String getUser(String userId){
+    public String getUserName(String userId){
         String result = "";
         try {
             String sql = "SELECT * FROM User WHERE user_id = ?";
@@ -135,6 +141,103 @@ public class MessengerServer {
         return result;
     }
     
+    public boolean isUser(String userId, String password){
+        boolean result = false;
+        try {
+            String sql = "SELECT * FROM User WHERE user_id = ? AND password = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, userId);
+            dbStatement.setString(2, password);
+            ResultSet res = dbStatement.executeQuery();
+            int count = 0;
+            if (res.next()){
+                count++;
+                result = true;
+            }
+            res.close();
+            if(count < 1){
+                result =false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+    
+    public String loginUser(String user, String password){
+        if(getUserName(user).equalsIgnoreCase("empty")) {
+            return "user name doesn't exist";
+        }else {
+            if(isUser(user, password)){
+                return "success";
+            }else {
+                return "invalid password";
+            }
+        }
+    }
+    
+    public boolean isGroupExist(String groupId){
+        boolean result = false;
+        try {
+            String sql = "SELECT * FROM GroupName WHERE group_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, groupId);
+            ResultSet res = dbStatement.executeQuery();
+            int count = 0;
+            if (res.next()){
+                count++;
+                result= true;
+            }
+            res.close();
+            if(count < 1){
+                result =false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+    
+    public String createGroup(String groupName, ArrayList<String> member, String Admin){
+        if(isGroupExist(groupName)){
+            return "Group already exist";
+        }else if(getUserName(Admin).equalsIgnoreCase("empty")){
+            return "invalid user";
+        }else {
+            try {
+                String sql = "INSERT INTO GroupName (group_id, Admin) VALUES (?,?)";
+                PreparedStatement dbStatement = conn.prepareStatement(sql);
+                dbStatement.setString(1, groupName);
+                dbStatement.setString(2, Admin);
+                dbStatement.executeUpdate();
+                dbStatement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+                return "FAIL";
+            }
+            if(!member.isEmpty()){
+                for(String name : member){
+                    if(!getUserName(name).equalsIgnoreCase("empty")){
+                        try {
+                            String sql = "INSERT INTO GroupMember (user_id, group_id) VALUES (?,?)";
+                            PreparedStatement dbStatement = conn.prepareStatement(sql);
+                            dbStatement.setString(1, name);
+                            dbStatement.setString(1, groupName);
+                            dbStatement.executeUpdate();
+                            dbStatement.close();
+                            System.out.println(name + " joined");
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }else {
+                        return name + " not a user!";
+                    }
+                }
+            }
+            return "success";  
+        }
+    }
+    
     public boolean registerUser(String name, String password){
         boolean status = false;
         try {
@@ -153,10 +256,112 @@ public class MessengerServer {
         return status;
     }
     
-    /*public boolean loginUser(String name, String password){
+    public ArrayList<String> getFriends(String userId){
+        ArrayList<String> friends = new ArrayList();
+        try {
+            String sql = "SELECT * FROM Friend WHERE user_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, userId);
+            ResultSet res = dbStatement.executeQuery();
+            while (res.next()) {
+                friends.add(res.getString("friend_id"));
+            }
+            res.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return friends;
+    }
+    
+    public ArrayList<String> getGroups(String userId){
+        ArrayList<String> friends = new ArrayList();
+        try {
+            String sql = "SELECT * FROM GroupMember WHERE user_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, userId);
+            ResultSet res = dbStatement.executeQuery();
+            while (res.next()) {
+                friends.add(res.getString("group_id"));
+            }
+            res.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return friends;
+    }
+    
+    public ArrayList<String> getMember(String groupId){
+        ArrayList<String> friends = new ArrayList();
+        try {
+            String sql = "SELECT * FROM GroupMember WHERE group_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, groupId);
+            ResultSet res = dbStatement.executeQuery();
+            while (res.next()) {
+                friends.add(res.getString("user_id"));
+            }
+            res.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return friends;
+    }
+    
+    public ArrayList<String> getReceiverMember(String groupId, String sender){
+        ArrayList<String> friends = new ArrayList();
+        try {
+            String sql = "SELECT * FROM GroupMember WHERE group_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, groupId);
+            ResultSet res = dbStatement.executeQuery();
+            while (res.next()) {
+                if(!sender.equalsIgnoreCase(res.getString("user_id")))
+                    friends.add(res.getString("user_id"));
+            }
+            res.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return friends;
+    }
+    
+    public boolean addFriend(String sender, String receiver){
+        if(sender.equalsIgnoreCase(getUserName(sender)) && receiver.equalsIgnoreCase(getUserName(receiver))) {
+            try {
+                String sql = "INSERT INTO Friend (user_id, friend_id) VALUES (?, ?)";
+                PreparedStatement dbStatement = conn.prepareStatement(sql);
+                dbStatement.setString(1, sender);
+                dbStatement.setString(2, receiver);
+                dbStatement.executeUpdate();
+                
+                sql = "INSERT INTO Friend (user_id, friend_id) VALUES (?, ?)";
+                dbStatement = conn.prepareStatement(sql);
+                dbStatement.setString(1, receiver);
+                dbStatement.setString(2, sender);
+                dbStatement.executeUpdate();
+                
+                dbStatement.close();
+                System.out.println("add friend berhasil");
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
+            }
+            return true;
+        }else {
+            return false;
+        }
+    }
+    
+    public void sendMessage(String groupId, String sender, String Content) {
+        String message = sender + ": " + Content;
+        ArrayList<String> receivers = getReceiverMember(groupId, sender);
+        for(String receiver : receivers){
+            
+        }
+    }
+    
+    public void sendMessage(String receiver, String Sender) {
         
-    }*/
-    
-    
-    
+    }
 }
