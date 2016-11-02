@@ -51,8 +51,6 @@ public class MessengerClient {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                     throws IOException {
-                String message = new String(body, "UTF-8");
-                System.out.println(" [x] Received '" + message + "'");
                 channel.basicAck(envelope.getDeliveryTag(), false);
                 Message m = null;
                 try {
@@ -62,11 +60,11 @@ public class MessengerClient {
                 }
                 switch (m.getType()) {
                     case 0: {
-                        System.out.println(m.getSender() +" : "+m.getContent());
+                        System.out.println(m.getSender() + " : " + m.getContent());
                         break;
                     }
                     case 1: {
-                        System.out.println(m.getGroupName() + " , " +m.getSender() + " : "+m.getContent());
+                        System.out.println(m.getGroupName() + " , " + m.getSender() + " : " + m.getContent());
                         break;
                     }
                     case 2: {
@@ -83,7 +81,7 @@ public class MessengerClient {
                             }
                             case "addfriend": {
                                 listfriend.add(m.getFriendID());
-                                System.out.println("addfriend "+ m.getFriendID());
+                                System.out.println("addfriend " + m.getFriendID());
                                 break;
                             }
                             default: {
@@ -99,38 +97,38 @@ public class MessengerClient {
         autoAck = false; // acknowledgment is covered below
 
     }
-    
-    public int getFriends () throws IOException{
-        if (isLogin){
+
+    public int getFriends() throws IOException {
+        if (isLogin) {
             System.out.println("[List Friend]");
-            for (int i=0; i<listfriend.size();i++){
+            for (int i = 0; i < listfriend.size(); i++) {
                 System.out.println(listfriend.get(i));
             }
             return 1;
         }
         return 0;
     }
-    
-    public int getGroups () throws IOException{
-        if (isLogin){
+
+    public int getGroups() throws IOException {
+        if (isLogin) {
             System.out.println("[List Group]");
-            for (int i=0; i<listgroup.size();i++){
+            for (int i = 0; i < listgroup.size(); i++) {
                 System.out.println(listgroup.get(i));
             }
             return 1;
         }
         return 0;
     }
-    
-    public int chatFriend () throws IOException{
-        if (isLogin){
+
+    public int chatFriend() throws IOException {
+        if (isLogin) {
             System.out.print("Masukkan nama teman : ");
             String namauser = sc.nextLine();
             if (!listfriend.contains((String) namauser) || id.equalsIgnoreCase(namauser)) {
                 System.out.println("tidak ada teman itu");
                 return 0;
             }
-            String content =sc.nextLine();
+            String content = sc.nextLine();
             Message m = new Message(0, id, content);
             m.setFriendID(namauser);
             channel.basicPublish("", serverqueue, null, m.toBytes());
@@ -138,16 +136,16 @@ public class MessengerClient {
         }
         return 0;
     }
-    
-    public int chatGroup () throws IOException{
-        if (isLogin){
+
+    public int chatGroup() throws IOException {
+        if (isLogin) {
             System.out.print("Masukkan nama group : ");
             String namagroup = sc.nextLine();
             if (!listgroup.contains((String) namagroup)) {
                 System.out.println("tidak ada group itu");
                 return 0;
             }
-            String content =sc.nextLine();
+            String content = sc.nextLine();
             Message m = new Message(1, id, content);
             m.setGroupName(namagroup);
             channel.basicPublish("", serverqueue, null, m.toBytes());
@@ -195,7 +193,8 @@ public class MessengerClient {
         if (isLogin) {
             System.out.print("Masukkan nama grup : ");
             String namagrup = sc.nextLine();
-            if (listgroup.contains((String) namagrup)) {
+            System.out.println(listgroup.isEmpty());
+            if (!listgroup.isEmpty() && listgroup.contains((String) namagrup)) {
                 System.out.println("sudah terdaftar dalam group");
                 return 0;
             }
@@ -242,8 +241,15 @@ public class MessengerClient {
                 Message response = Message.toMessage(delivery.getBody());
                 if (response.getContent().equalsIgnoreCase("success")) {
                     System.out.println("berhasil");
-                    listfriend = new ArrayList<String>(m.getListFriend());
-                    listgroup = new ArrayList<String>(m.getListGroup());
+
+                    listfriend = m.getListFriend();
+                    listgroup = m.getListGroup();
+                    if (listgroup == null) {
+                        listgroup = new ArrayList<String>();
+                    }
+                    if (listfriend == null) {
+                        listfriend = new ArrayList<String>();
+                    }
                     isLogin = true;
                     id = userid;
                     channel.queueDeclare(userid, true, false, false, null);

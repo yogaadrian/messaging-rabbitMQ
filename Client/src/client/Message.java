@@ -121,10 +121,10 @@ public class Message implements java.io.Serializable{
     }
     
     public void setGroupName(String vnamagroup) {
-        content = vnamagroup;
+        namagroup = vnamagroup;
     }
     public void setFriendID(String vfriendid) {
-        content = vfriendid;
+        friendid = vfriendid;
     }
     
     public void setUserIDs(ArrayList<String> vuserids) {
