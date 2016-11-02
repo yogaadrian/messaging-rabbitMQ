@@ -18,18 +18,18 @@ import java.util.ArrayList;
  *
  * @author yoga
  */
-public class Message implements java.io.Serializable{
+public class Message implements java.io.Serializable {
 
     private int type;
     private String sender;
     private String content;
     private String namagroup;
     private ArrayList<String> userids;
-    
+
     private ArrayList<String> listgroup;
-    
+
     private ArrayList<String> listfriend;
-    
+
     private String friendid;
 //    private String command;
 //    private String userid;
@@ -40,9 +40,9 @@ public class Message implements java.io.Serializable{
         this.type = type;
         this.sender = sender;
         this.content = content;
-        userids=null;
-        listfriend=null;
-        listgroup=null;
+        userids = null;
+        listfriend = null;
+        listgroup = null;
 //        this.command = null;
 //        this.userid = null;
 //        this.password = null;
@@ -55,7 +55,7 @@ public class Message implements java.io.Serializable{
         Message m;
         try {
             in = new ObjectInputStream(bis);
-            m = (Message)in.readObject();
+            m = (Message) in.readObject();
         } finally {
             try {
                 if (in != null) {
@@ -79,25 +79,27 @@ public class Message implements java.io.Serializable{
     public String getContent() {
         return content;
     }
-    
+
     public String getGroupName() {
         return namagroup;
     }
-    
+
     public String getFriendID() {
         return friendid;
     }
-    
-    public ArrayList<String> getListUser(){
+
+    public ArrayList<String> getListUser() {
         return userids;
     }
-    public ArrayList<String> getListFriend(){
+
+    public ArrayList<String> getListFriend() {
         return listfriend;
     }
-    public ArrayList<String> getListGroup(){
+
+    public ArrayList<String> getListGroup() {
         return listgroup;
     }
-    
+
 //    public String getCommand(){
 //        return command;
 //    }
@@ -107,7 +109,6 @@ public class Message implements java.io.Serializable{
 //    public String getPassword(){
 //        return password;
 //    }
-
     public void setType(int vtype) {
         type = vtype;
     }
@@ -119,22 +120,33 @@ public class Message implements java.io.Serializable{
     public void setContent(String vcontent) {
         content = vcontent;
     }
-    
+
     public void setGroupName(String vnamagroup) {
         namagroup = vnamagroup;
     }
+
     public void setFriendID(String vfriendid) {
         friendid = vfriendid;
     }
-    
+
     public void setUserIDs(ArrayList<String> vuserids) {
-        userids= new ArrayList<String>(vuserids);
+        userids = new ArrayList<String>(vuserids);
     }
+
     public void setListFriend(ArrayList<String> vlistfriend) {
-        listfriend= new ArrayList<String>(vlistfriend);
+        listfriend = new ArrayList<String>();
+        for (int i = 0; i < vlistfriend.size(); i++) {
+            listfriend.add(vlistfriend.get(i));
+        }
     }
+
     public void setListGroup(ArrayList<String> vlistgroup) {
-        listgroup= new ArrayList<String>(vlistgroup);
+        listgroup = new ArrayList<String>();
+        for (int i = 0; i < vlistgroup.size(); i++) {
+            listgroup.add(vlistgroup.get(i));
+            System.out.println(listgroup.get(i));
+        }
+        
     }
 //    public void setCommand(String vcommand){
 //        command=vcommand;
