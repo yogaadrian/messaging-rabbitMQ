@@ -180,7 +180,7 @@ public class MessengerClient {
                 System.out.println("tidak terdaftar dalam grup");
                 return 0;
             }
-            String content = "creategroup";
+            String content = "leavegroup";
             Message m = new Message(2, id, content);
             m.setGroupName(namagrup);
             channel.basicPublish("", serverqueue, null, m.toBytes());
@@ -189,6 +189,30 @@ public class MessengerClient {
         return 0;
     }
 
+    public int addUsertoGroup() throws IOException {
+        if (isLogin) {
+            System.out.print("Masukkan nama grup : ");
+            String namagrup = sc.nextLine();
+            System.out.println(listgroup.isEmpty());
+            if (listgroup.isEmpty() || !listgroup.contains((String) namagrup)) {
+                System.out.println("tidak ada group tersebut");
+                return 0;
+            }
+            System.out.println("Masukkan user id : ");
+            String userid = sc.nextLine();
+            
+            String content = "addusertogroup";
+            Message m = new Message(2, id, content);
+            m.setGroupName(namagrup);
+            m.setFriendID(userid);
+            channel.basicPublish("", serverqueue, null, m.toBytes());
+            return 1;
+        } else {
+            return 0;
+        }
+
+    }
+    
     public int createGroup() throws IOException {
         if (isLogin) {
             System.out.print("Masukkan nama grup : ");
