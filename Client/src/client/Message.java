@@ -131,10 +131,10 @@ public class Message implements java.io.Serializable{
         userids= new ArrayList<String>(vuserids);
     }
     public void setListFriend(ArrayList<String> vlistfriend) {
-        userids= new ArrayList<String>(vlistfriend);
+        listfriend= new ArrayList<String>(vlistfriend);
     }
     public void setListGroup(ArrayList<String> vlistgroup) {
-        userids= new ArrayList<String>(vlistgroup);
+        listgroup= new ArrayList<String>(vlistgroup);
     }
 //    public void setCommand(String vcommand){
 //        command=vcommand;
