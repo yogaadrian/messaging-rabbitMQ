@@ -71,6 +71,7 @@ public class MessengerServer {
                     switch (message.getType()) {
                         //PM
                         case 0: {
+                            
                             break;
                         }
                         //GROUP
@@ -81,19 +82,17 @@ public class MessengerServer {
                         case 2: {
                             System.out.println(message.getContent());
                             String[] contents = message.getContent().split(" ");
-                            System.out.println(contents[0]);
-                            System.out.println(contents[0]);
-                            System.out.println(contents[0]);
                             Message m;
                             if (contents[0].equalsIgnoreCase("register")) {
+                                System.out.println("REGISTER: " + message.getSender());
                                 String userId = contents[1];
                                 String password = contents[2];
                                 if (getUserName(userId).equalsIgnoreCase(userId)) {
-                                    System.out.println("user already exist!");
+                                    System.out.println("REGISTER: user already exist!");
                                     m = new Message(1, SERVER_QUEUE_NAME, "FAIL");
                                 } else {
                                     registerUser(userId, password);
-                                    System.out.println("success!");
+                                    System.out.println("REGISTER: success!");
                                     m = new Message(1, SERVER_QUEUE_NAME, "SUCCESS");
                                 }
                                 BasicProperties replyProps = new BasicProperties.Builder()
@@ -102,37 +101,46 @@ public class MessengerServer {
 
                                 channel.basicPublish("", properties.getReplyTo(), replyProps, m.toBytes());
                             } else if (contents[0].equalsIgnoreCase("login")) {
+                                System.out.println("LOGIN: " + message.getSender());
                                 System.out.println(loginUser(contents[1], contents[2]));
 
                                 m = new Message(2, SERVER_QUEUE_NAME, loginUser(contents[1], contents[2]));
-                                m.setListFriend(getFriends(contents[1]));
-                                m.setListGroup(getGroups(contents[1]));
+                                System.out.println("Friends: " + getFriends(message.getSender()).size());
+                                m.setListFriend(getFriends(message.getSender()));
+                                
+                                System.out.println("Groups: " + getGroups(message.getSender()).size());
+                                m.setListGroup(getGroups(message.getSender()));
                                 BasicProperties replyProps = new BasicProperties.Builder()
                                         .correlationId(properties.getCorrelationId())
                                         .build();
 
                                 channel.basicPublish("", properties.getReplyTo(), replyProps, m.toBytes());
-                                //BIKIN LIST FRIEND SAMA LIST GROUP
                             } else if (contents[0].equalsIgnoreCase("creategroup")) {
-                                System.out.println("CREATE GROUP: ");
+                                System.out.println("CREATE GROUP: " + message.getSender());
                                 String res = createGroup(message.getGroupName(), message.getListUser(), message.getSender());
                                 String[] cek = res.split(" ");
                                 if (cek[0].equalsIgnoreCase("success")) {
+                                    System.out.println("CREATE GROUP: BERHASIL");
                                     //send to member
                                     channel.exchangeDeclare(message.getGroupName(), "fanout");
-                                    for(String name : getMember(message.getGroupName())){
+                                    for (String name : getMember(message.getGroupName())) {
                                         channel.queueBind(name, message.getGroupName(), "");
                                     }
                                     m = new Message(2, SERVER_QUEUE_NAME, "joingroup");
                                     m.setGroupName(message.getGroupName());
                                     channel.basicPublish(message.getGroupName(), "", null, m.toBytes());
+                                }else{
+                                    System.out.println("CREATE GROUP: GAGAL");
                                 }
                                 //send to sender
                                 Message mu = new Message(2, SERVER_QUEUE_NAME, res);
                                 mu.setListGroup(getGroups(message.getSender()));
                                 channel.basicPublish("", message.getSender(), null, mu.toBytes());
                             } else if (contents[0].equalsIgnoreCase("leavegroup")) {
-                                
+                                System.out.println("LEAVE GROUP");
+                                String res = leaveGroup(message.getGroupName(), message.getSender());
+                                System.out.println("LEAVEGROUP: " + res);
+                                sendMessage(message.getSender(), SERVER_QUEUE_NAME, res, 2);
                             }
                             break;
                         }
@@ -407,28 +415,137 @@ public class MessengerServer {
         }
     }
 
-    /*public boolean joinGroup(String groupId, String userId) {
-     try {
-     String sql = "INSERT INTO GroupMember (user_id, group_id) VALUES (?, ?)";
-     PreparedStatement dbStatement = conn.prepareStatement(sql);
-     dbStatement.setString(1, userId);
-     dbStatement.setString(2, groupId);
-     dbStatement.executeUpdate();
-            
-     dbStatement.close();
-     } catch (SQLException ex) {
-     Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
-     }
-     }*/
-    public void sendMessage(String groupId, String sender, String Content) {
-        String message = sender + ": " + Content;
-        ArrayList<String> receivers = getReceiverMember(groupId, sender);
-        for (String receiver : receivers) {
+    public boolean isMemberGroup(String groupId, String userId) {
+        boolean result = false;
+        try {
+            String sql = "SELECT * FROM GroupMember WHERE user_id = ? AND group_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, userId);
+            dbStatement.setString(2, groupId);
+            ResultSet res = dbStatement.executeQuery();
+            int count = 0;
+            if (res.next()) {
+                count++;
+                result = true;
+            }
+            res.close();
+            if (count < 1) {
+                result = false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
 
+    public boolean isAdminGroup(String groupId, String adminId) {
+        boolean result = false;
+        try {
+            String sql = "SELECT * FROM GroupName WHERE Admin = ? AND group_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, adminId);
+            dbStatement.setString(2, groupId);
+            ResultSet res = dbStatement.executeQuery();
+            int count = 0;
+            if (res.next()) {
+                count++;
+                result = true;
+            }
+            res.close();
+            if (count < 1) {
+                result = false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public String joinGroup(String groupId, String userId, String Admin) {
+        try {
+            if (!isAdminGroup(groupId, Admin)) {
+                return "anda bukan admin!";
+            } else if (isMemberGroup(groupId, userId)) {
+                return "sudah bergabung dengan grup";
+            } else {
+                String sql = "INSERT INTO GroupMember (user_id, group_id) VALUES (?, ?)";
+                PreparedStatement dbStatement = conn.prepareStatement(sql);
+                dbStatement.setString(1, userId);
+                dbStatement.setString(2, groupId);
+                dbStatement.executeUpdate();
+
+                dbStatement.close();
+                return "success";
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+            return "gagal";
         }
     }
 
-    public void sendMessage(String receiver, String Sender) {
+    public String leaveGroup(String groupId, String userId) {
+        try {
+            if (!isMemberGroup(groupId, userId)) {
+                return "anda bukan bagian dari grup";
+            } else {
+                String sql = "DELETE FROM GroupMember WHERE group_id = ? AND user_id =?";
+                PreparedStatement dbStatement = conn.prepareStatement(sql);
+                dbStatement.setString(1, groupId);
+                dbStatement.setString(2, userId);
+                dbStatement.executeUpdate();
 
+                dbStatement.close();
+                return "leavegroup";
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+            return "fail";
+        }
+    }
+    
+    public boolean isFriend(String userId, String friendId) {
+        boolean result = false;
+        try {
+            String sql = "SELECT * FROM Friend WHERE user_id = ? AND friend_id = ?";
+            PreparedStatement dbStatement = conn.prepareStatement(sql);
+            dbStatement.setString(1, userId);
+            dbStatement.setString(2, friendId);
+            ResultSet res = dbStatement.executeQuery();
+            int count = 0;
+            if (res.next()) {
+                count++;
+                result = true;
+            }
+            res.close();
+            if (count < 1) {
+                result = false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public void sendGroup(String groupId, String sender, String content) throws IOException {
+        String message = sender + "= " + content;
+        System.out.println("sendMessage: " + message);
+        ArrayList<String> receivers = getReceiverMember(groupId, sender);
+        //channel.queueBind(name, message.getGroupName(), "");                        
+        Message m = new Message(1, SERVER_QUEUE_NAME, content);
+        m.setGroupName(groupId);
+        m.setSender(sender);
+        channel.basicPublish(groupId, "", null, m.toBytes());
+    }
+
+    public void sendMessage(String receiver, String sender, String content) throws IOException {
+        Message mu = new Message(0, sender, content);
+        mu.setFriendID(receiver);
+        channel.basicPublish("", receiver, null, mu.toBytes());
+    }
+    
+    public void sendMessage(String receiver, String sender, String content, int type) throws IOException {
+        Message mu = new Message(type, sender, content);
+        mu.setFriendID(receiver);
+        channel.basicPublish("", receiver, null, mu.toBytes());
     }
 }

@@ -282,8 +282,10 @@ public class MessengerClient {
                     if (listfriend == null) {
                         listfriend = new ArrayList<String>();
                     }
+                    //System.out.println(m.getListGroup().size());
                     isLogin = true;
                     id = userid;
+                    getGroups();
                     channel.queueDeclare(userid, true, false, false, null);
                     channel.basicConsume(userid, true, consumer);
                     return 1;
