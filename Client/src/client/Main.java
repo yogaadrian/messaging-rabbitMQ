@@ -29,6 +29,7 @@ public class Main {
         MessengerClient mclient = new MessengerClient();
         System.out.println("Masukkan Command. masukkan 'help' untuk mendapatkan petunjuk list command");
         while(true){
+            System.out.print(">>");
             String command = sc.nextLine();
             switch(command) {
                 case "register":{

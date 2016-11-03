@@ -163,7 +163,7 @@ public class MessengerServer {
                                 
                                 channel.queueBind(message.getFriendID(), message.getGroupName(), "");
                                 
-                                sendMessage(message.getFriendID(), SERVER_QUEUE_NAME, "joined group " + message.getGroupName(), 2);
+                                sendMessage(message.getFriendID(), SERVER_QUEUE_NAME, "joingroup " + message.getGroupName(), 2);
                             } else if (contents[0].equalsIgnoreCase("addfriend")){
                                 System.out.println("ADD FRIEND: " + message.getSender());
                                 if(!isFriend(message.getSender(),message.getFriendID())){

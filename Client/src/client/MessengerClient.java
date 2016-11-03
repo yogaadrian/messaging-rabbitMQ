@@ -130,6 +130,8 @@ public class MessengerClient {
                 System.out.println("tidak ada teman itu");
                 return 0;
             }
+            System.out.print("Masukkan pesan : ");
+
             String content = sc.nextLine();
             Message m = new Message(0, id, content);
             m.setFriendID(namauser);
@@ -148,6 +150,7 @@ public class MessengerClient {
                 System.out.println("tidak ada group itu");
                 return 0;
             }
+            System.out.print("Masukkan pesan : ");
             String content = sc.nextLine();
             Message m = new Message(1, id, content);
             m.setGroupName(namagroup);
@@ -281,7 +284,7 @@ public class MessengerClient {
                     if (listfriend == null) {
                         listfriend = new ArrayList<String>();
                     }
-                    
+
                     isLogin = true;
                     id = userid;
                     channel.queueDeclare(userid, true, false, false, null);
