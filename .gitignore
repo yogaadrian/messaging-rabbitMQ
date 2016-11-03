@@ -5,6 +5,7 @@
 /Server/dist/
 /Server/nbdist/
 /Server/.nb-gradle/
+/Server/pat3.db
 /Client/build/
 /Client/nbbuild/
 /Client/dist/
