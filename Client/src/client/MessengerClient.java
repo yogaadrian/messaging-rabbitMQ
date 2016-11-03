@@ -42,7 +42,16 @@ public class MessengerClient {
     public MessengerClient() throws IOException, TimeoutException {
         isLogin = false;
         factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        System.out.print("input host : ");
+        String host = sc.nextLine();
+        if (!host.equalsIgnoreCase("localhost")) {
+            System.out.print("input port : ");
+            int port = Integer.parseInt(sc.nextLine());
+            factory.setPort(port);
+        }
+
+        factory.setHost(host);
+
         connection = factory.newConnection();
         channel = connection.createChannel();
         //channel.basicQos(1); // accept only one unack-ed message at a time (see below)
@@ -202,7 +211,6 @@ public class MessengerClient {
         if (isLogin) {
             System.out.print("Masukkan nama grup : ");
             String namagrup = sc.nextLine();
-            System.out.println(listgroup.isEmpty());
             if (listgroup.isEmpty() || !listgroup.contains((String) namagrup)) {
                 System.out.println("tidak ada group tersebut");
                 return 0;

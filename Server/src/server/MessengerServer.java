@@ -32,6 +32,7 @@ import java.util.ArrayList;
  */
 public class MessengerServer {
 
+    private Scanner sc = new Scanner(System.in);
     private static final String SERVER_QUEUE_NAME = "server_queue";
     private static java.sql.Connection conn = DBConnector.connect();
     private List<String> queueName;
@@ -42,23 +43,29 @@ public class MessengerServer {
 
     MessengerServer() throws IOException, TimeoutException {
         factory = new ConnectionFactory();
-        factory.setHost("localhost");
 
+        System.out.print("input host : ");
+        String host = sc.nextLine();
+        if (!host.equalsIgnoreCase("localhost")) {
+            System.out.print("input port : ");
+            int port = Integer.parseInt(sc.nextLine());
+            factory.setPort(port);
+        }
+        factory.setHost(host);
         connection = factory.newConnection();
         channel = connection.createChannel();
 
         channel.queueDeclare(SERVER_QUEUE_NAME, true, false, false, null);
 
         //channel.basicQos(1);
-
         ArrayList<String> groupNames = getGroups();
         for (String name : groupNames) {
             channel.exchangeDeclare(name, "fanout");
         }
-        
+
         ArrayList<String> userNames = getUserId();
         for (String name : userNames) {
-            channel.queueDeclare(name, true,false,false,null);
+            channel.queueDeclare(name, true, false, false, null);
         }
         //consumer = new QueueingConsumer(channel);
         //channel.basicConsume(SERVER_QUEUE_NAME, false, consumer);
@@ -67,10 +74,7 @@ public class MessengerServer {
         consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                System.out.println("dapet");
                 Message message;
-                System.out.println("dapet");
-                //channel.basicAck(envelope.getDeliveryTag(), false);
                 try {
                     message = Message.toMessage(body);
                     System.out.println(message.getType());
@@ -78,7 +82,7 @@ public class MessengerServer {
                         //PM
                         case 0: {
                             System.out.println("PERSONAL MESSAGE: " + message.getSender());
-                            if(isFriend(message.getSender(), message.getFriendID())){
+                            if (isFriend(message.getSender(), message.getFriendID())) {
                                 sendMessage(message.getFriendID(), message.getSender(), message.getContent());
                             } else {
                                 String response = "dia bukan teman anda";
@@ -89,7 +93,7 @@ public class MessengerServer {
                         //GROUP
                         case 1: {
                             System.out.println("GROUP MESSAGE: " + message.getSender());
-                            sendGroupMessage(message.getGroupName(),message.getSender(),message.getContent());
+                            sendGroupMessage(message.getGroupName(), message.getSender(), message.getContent());
                             break;
                         }
                         //COMMAND
@@ -121,7 +125,7 @@ public class MessengerServer {
                                 m = new Message(2, SERVER_QUEUE_NAME, loginUser(contents[1], contents[2]));
                                 System.out.println("Friends: " + getFriends(message.getSender()).size());
                                 m.setListFriend(getFriends(message.getSender()));
-                                
+
                                 System.out.println("Groups: " + getGroups(message.getSender()).size());
                                 m.setListGroup(getGroups(message.getSender()));
                                 BasicProperties replyProps = new BasicProperties.Builder()
@@ -143,7 +147,7 @@ public class MessengerServer {
                                     m = new Message(2, SERVER_QUEUE_NAME, "joingroup");
                                     m.setGroupName(message.getGroupName());
                                     channel.basicPublish(message.getGroupName(), "", null, m.toBytes());
-                                }else{
+                                } else {
                                     System.out.println("CREATE GROUP: GAGAL");
                                 }
                                 //send to sender
@@ -157,20 +161,20 @@ public class MessengerServer {
                                 sendMessage(message.getSender(), SERVER_QUEUE_NAME, res, 2);
                             } else if (contents[0].equalsIgnoreCase("addusertogroup")) {
                                 System.out.println("JOIN GROUP: " + message.getSender());
-                                String res = joinGroup(message.getGroupName(),message.getFriendID(),message.getSender());
+                                String res = joinGroup(message.getGroupName(), message.getFriendID(), message.getSender());
                                 System.out.println("JOIN GROUP: " + res);
                                 sendMessage(message.getSender(), SERVER_QUEUE_NAME, res, 2);
-                                
+
                                 channel.queueBind(message.getFriendID(), message.getGroupName(), "");
-                                
+
                                 sendMessage(message.getFriendID(), SERVER_QUEUE_NAME, "joingroup " + message.getGroupName(), 2);
-                            } else if (contents[0].equalsIgnoreCase("addfriend")){
+                            } else if (contents[0].equalsIgnoreCase("addfriend")) {
                                 System.out.println("ADD FRIEND: " + message.getSender());
-                                if(!isFriend(message.getSender(),message.getFriendID())){
-                                    if(addFriend(message.getSender(),message.getFriendID())) {
+                                if (!isFriend(message.getSender(), message.getFriendID())) {
+                                    if (addFriend(message.getSender(), message.getFriendID())) {
                                         sendFriendMessage(message.getSender(), message.getFriendID(), message.getContent(), 2);
                                         sendFriendMessage(message.getFriendID(), message.getSender(), message.getContent(), 2);
-                                    } else{
+                                    } else {
                                         System.out.println("ADD FRIEND: GAGAL");
                                     }
                                 } else {
@@ -186,12 +190,6 @@ public class MessengerServer {
                     Logger.getLogger(MessengerServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 ;
-                //System.out.println(" [x] Received '" + message + "'");
-                /*try {
-                
-                 } finally {
-                 System.out.println(" [x] Done");
-                 }*/
             }
         };
         boolean autoAck = true; // acknowledgment is covered below
@@ -219,7 +217,7 @@ public class MessengerServer {
         }
         return result;
     }
-    
+
     public ArrayList<String> getUserId() {
         ArrayList<String> result = new ArrayList();
         try {
@@ -554,7 +552,7 @@ public class MessengerServer {
             return "fail";
         }
     }
-    
+
     public boolean isFriend(String userId, String friendId) {
         boolean result = false;
         try {
@@ -594,12 +592,13 @@ public class MessengerServer {
         mu.setFriendID(receiver);
         channel.basicPublish("", receiver, null, mu.toBytes());
     }
-    
+
     public void sendMessage(String receiver, String sender, String content, int type) throws IOException {
         Message mu = new Message(type, sender, content);
         mu.setFriendID(receiver);
         channel.basicPublish("", receiver, null, mu.toBytes());
     }
+
     public void sendFriendMessage(String receiver, String friend, String content, int type) throws IOException {
         Message mu = new Message(type, SERVER_QUEUE_NAME, content);
         mu.setFriendID(friend);

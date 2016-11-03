@@ -3,7 +3,7 @@ Aplikasi terdiri dari 2 komponen yang terprogram
 	1. Messenger Client
 	2. Messenger Server
 Dalam komunikasi antar 2 komponen tersebut, digunakan RabbitMQ sebagai Message Broker. Setiap komponen memiliki message queue sendiri dengan id dirinya sendiri. Hal tersebut juga berlaku untuk server. Untuk komunikasi group, digunakan "exchange" untuk mengirim pesan ke semua queue yang terdaftar dalam exchange. Exchange tersebut diketahui oleh server. Segala komunikasi yang dilakukan (private chat atau group chat), pasti melewati server messenger. 
-Untuk representasi group, user disimpan dalam database. Setiap program server di jalankan, data dari database akan diambil dan direpresentasikan lagi ke exchange, queue dan lain lain. Perintah khusus seperti membuat group, leave group, di kirimkan ke server oleh client dan di proses di server.
+Untuk representasi group, user disimpan dalam database. Setiap program server di jalankan, data dari database akan diambil dan direpresentasikan lagi ke exchange, queue dan lain lain. Perintah khusus seperti membuat group, leave group, di kirimkan ke server oleh client dan di proses di server. Untuk menjalankan aplikasi ini, dibutuhkan 1 node yang terinstall rabbitmq server.
 
 Petunjuk Instalasi
 1. Buka 2 projek yang bersesuaian (Client dan Server)
@@ -17,8 +17,9 @@ Cara Menjalankan Program
 		- masuk ke terminal
 		- masuk ke path file .jar
 		- jalankan "java -jar server.jar" untuk server, dan "java -jar client.jar" untul client
-2. Masukkan command pada aplikasi client messenger
-3. Tekan help untuk mendapatkan list command.
+2. Masukkan alamat dan port dari node yang terinstall rabiitmq server		
+3. Masukkan command pada aplikasi client messenger
+4. Tekan help untuk mendapatkan list command.
 
 Tes
 1. Help(Fungsi tambahan)
@@ -273,7 +274,8 @@ Tes
 
 Langkah-langkah melakukan tes
 1. Jalankan 2 program(client messenger dan server messenger)
-2. Masukkan command yang diinginkan
-3. Coba segala skenario yang memungkinkan (skenario benar dan salah, atau konten pesan yang salah maupun benar)
-4. Cek database untuk command yang bersesuaian.
-5. Lihat hasilnya dan bandingkan dengan yang seharusnya.
+2. Jalankan rabbitmq server pada localhost. input alamat localhost
+3. Masukkan command yang diinginkan
+4. Coba segala skenario yang memungkinkan (skenario benar dan salah, atau konten pesan yang salah maupun benar)
+5. Cek database untuk command yang bersesuaian.
+6. Lihat hasilnya dan bandingkan dengan yang seharusnya.
